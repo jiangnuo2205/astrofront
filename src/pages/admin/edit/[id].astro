@@ -1,0 +1,312 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+// 定义 getStaticPaths 函数
+export async function getStaticPaths() {
+  // 这里应该返回所有可能的 id 值
+  // 在开发环境中，你可以使用一个占位符让 Astro 接受任何 id
+  return [
+    { params: { id: 'new' } },
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    // 如果你有更多的 id，可以继续添加
+  ];
+}
+
+
+// 获取路由参数
+const { id } = Astro.params;
+
+// 模拟从数据库获取内容
+// 在实际应用中，这里会从数据库或API获取数据
+const isNew = id === 'new';
+let newsItem = {
+  id: "",
+  title: "",
+  slug: "",
+  content: "",
+  status: "草稿"
+};
+
+// 如果不是新建，则获取已有数据
+if (!isNew) {
+  const newsDatabase = {
+    "1": {
+      id: "1",
+      title: "网站正式上线",
+      slug: "website-launch",
+      content: `<p>我们很高兴地宣布，信息发布系统今天正式上线！</p>
+      
+<p>经过团队的不懈努力，我们打造了这个功能强大、使用便捷的信息发布平台。无论是公司公告、新闻动态还是重要通知，都可以通过这个系统快速发布和管理。</p>
+
+<p>系统具有以下特点：</p>
+<ul>
+  <li>简洁直观的用户界面</li>
+  <li>响应式设计，支持多设备访问</li>
+  <li>基于Git的版本控制</li>
+  <li>通过Vercel实现自动部署</li>
+  <li>安全可靠的管理员权限控制</li>
+</ul>
+
+<p>我们会持续完善系统功能，欢迎提供宝贵意见！</p>`,
+      status: "已发布"
+    },
+    "2": {
+      id: "2",
+      title: "系统功能介绍",
+      slug: "system-features",
+      content: `<p>本系统采用最新的技术栈，提供高效、便捷的信息发布服务。</p>
+
+<p>主要功能包括：</p>
+<ul>
+  <li>新闻发布与管理</li>
+  <li>内容分类与标签</li>
+  <li>搜索与筛选</li>
+  <li>版本历史与回滚</li>
+  <li>自动构建与部署</li>
+</ul>
+
+<p>技术栈：</p>
+<ul>
+  <li>Astro框架：提供出色的性能和开发体验</li>
+  <li>GitHub：代码托管与版本控制</li>
+  <li>Vercel：自动构建与部署</li>
+</ul>
+
+<p>未来我们将继续增强系统功能，敬请期待！</p>`,
+      status: "已发布"
+    }
+  };
+  
+  newsItem = newsDatabase[id] || newsItem;
+}
+
+const pageTitle = isNew ? "创建新内容" : "编辑内容";
+---
+
+<AdminLayout title={pageTitle}>
+  <form id="editForm" class="edit-form">
+    <input type="hidden" id="newsId" value={newsItem.id}>
+    
+    <div class="form-group">
+      <label for="title">标题</label>
+      <input type="text" id="title" name="title" value={newsItem.title} required>
+    </div>
+    
+    <div class="form-group">
+      <label for="slug">URL标识</label>
+      <input type="text" id="slug" name="slug" value={newsItem.slug} required>
+      <small>用于URL的唯一标识，例如: my-news-title</small>
+    </div>
+    
+    <div class="form-group">
+      <label for="content">内容</label>
+      <textarea id="content" name="content" rows="15" required>{newsItem.content}</textarea>
+      <small>支持HTML格式</small>
+    </div>
+    
+    <div class="form-group">
+      <label for="status">状态</label>
+      <select id="status" name="status">
+        <option value="草稿" selected={newsItem.status === "草稿"}>草稿</option>
+        <option value="已发布" selected={newsItem.status === "已发布"}>发布</option>
+      </select>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" id="previewBtn" class="preview-button">预览</button>
+      <button type="submit" class="save-button">保存</button>
+      <a href="/admin/dashboard" class="cancel-button">取消</a>
+    </div>
+  </form>
+  
+  <div id="previewSection" class="preview-section" style="display: none;">
+    <div class="preview-header">
+      <h3>预览</h3>
+      <button id="closePreviewBtn" class="close-preview-button">关闭预览</button>
+    </div>
+    <div class="preview-content">
+      <h1 id="previewTitle"></h1>
+      <div id="previewBody"></div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .edit-form {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 200px;
+  }
+
+  small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #666;
+    font-size: 0.85rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .preview-button, .save-button, .cancel-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .preview-button {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+  }
+
+  .save-button {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+  }
+
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .preview-section {
+    margin-top: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .preview-header h3 {
+    margin: 0;
+  }
+
+  .close-preview-button {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .preview-content {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+  }
+</style>
+
+<script>
+  // 检查登录状态
+  if (typeof window !== 'undefined') {
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = '/admin/login';
+    }
+  }
+
+  // 自动生成 slug
+  const titleInput = document.getElementById('title');
+  const slugInput = document.getElementById('slug');
+  
+  titleInput?.addEventListener('blur', function() {
+    if (slugInput.value === '') {
+      // 生成 slug：转小写，替换空格为连字符，移除特殊字符
+      const slug = this.value.toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+      
+      slugInput.value = slug;
+    }
+  });
+
+  // 预览功能
+  const previewBtn = document.getElementById('previewBtn');
+  const closePreviewBtn = document.getElementById('closePreviewBtn');
+  const previewSection = document.getElementById('previewSection');
+  const previewTitle = document.getElementById('previewTitle');
+  const previewBody = document.getElementById('previewBody');
+  
+  previewBtn?.addEventListener('click', function() {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    
+    previewTitle.textContent = title;
+    previewBody.innerHTML = content;
+    previewSection.style.display = 'block';
+    
+    // 滚动到预览区域
+    previewSection.scrollIntoView({ behavior: 'smooth' });
+  });
+  
+  closePreviewBtn?.addEventListener('click', function() {
+    previewSection.style.display = 'none';
+  });
+
+  // 表单提交
+  const editForm = document.getElementById('editForm');
+  
+  editForm?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+      id: document.getElementById('newsId').value,
+      title: document.getElementById('title').value,
+      slug: document.getElementById('slug').value,
+      content: document.getElementById('content').value,
+      status: document.getElementById('status').value
+    };
+    
+    // 在实际应用中，这里会发送请求到服务器保存内容
+    // 这里只是模拟保存成功
+    console.log('保存内容:', formData);
+    alert('内容已保存');
+    
+    // 重定向到控制面板
+    window.location.href = '/admin/dashboard';
+  });
+</script>

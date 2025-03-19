@@ -1,0 +1,230 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+// 模拟新闻数据，实际项目中应从数据源获取
+const newsList = [
+  {
+    id: "1",
+    title: "网站正式上线",
+    slug: "website-launch",
+    date: "2025-03-18",
+    status: "已发布"
+  },
+  {
+    id: "2",
+    title: "系统功能介绍",
+    slug: "system-features",
+    date: "2025-03-17",
+    status: "已发布"
+  },
+  {
+    id: "3",
+    title: "使用指南发布",
+    slug: "user-guide",
+    date: "2025-03-16",
+    status: "已发布"
+  },
+  {
+    id: "4",
+    title: "未来功能规划",
+    slug: "future-features",
+    date: "2025-03-15",
+    status: "已发布"
+  },
+  {
+    id: "5",
+    title: "如何贡献内容",
+    slug: "how-to-contribute",
+    date: "2025-03-14",
+    status: "已发布"
+  }
+];
+---
+
+<AdminLayout title="控制面板">
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <h3>发布内容</h3>
+      <p class="stat-value">5</p>
+    </div>
+    <div class="stat-card">
+      <h3>草稿</h3>
+      <p class="stat-value">2</p>
+    </div>
+    <div class="stat-card">
+      <h3>总访问量</h3>
+      <p class="stat-value">1,234</p>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="section-header">
+      <h2>内容列表</h2>
+      <a href="/admin/edit/new" class="create-button">创建新内容</a>
+    </div>
+
+    <table class="content-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>标题</th>
+          <th>发布日期</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {newsList.map(news => (
+          <tr>
+            <td>{news.id}</td>
+            <td>{news.title}</td>
+            <td>{news.date}</td>
+            <td><span class="status-badge">{news.status}</span></td>
+            <td class="actions">
+              <a href={`/admin/edit/${news.id}`} class="edit-button">编辑</a>
+              <a href={`/news/${news.slug}`} class="view-button">查看</a>
+              <button class="delete-button" data-id={news.id}>删除</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
+
+<style>
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .stat-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #666;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  .content-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-header h2 {
+    margin: 0;
+  }
+
+  .create-button {
+    background-color: #0066cc;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .content-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .content-table th,
+  .content-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .content-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+  .status-badge {
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .edit-button,
+  .view-button,
+  .delete-button {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  .edit-button {
+    background-color: #0066cc;
+    color: white;
+    text-decoration: none;
+  }
+
+  .view-button {
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+  }
+
+  .delete-button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+  }
+</style>
+
+<script>
+  // 检查登录状态
+  if (typeof window !== 'undefined') {
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = '/admin/login';
+    }
+  }
+
+  // 删除按钮功能
+  const deleteButtons = document.querySelectorAll('.delete-button');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const id = this.getAttribute('data-id');
+      if (confirm('确定要删除此内容吗？此操作不可撤销。')) {
+        // 在实际应用中，这里会发送请求到服务器删除内容
+        // 这里只是模拟删除成功
+        alert('内容已删除');
+        // 重新加载页面或从DOM中移除行
+        this.closest('tr').remove();
+      }
+    });
+  });
+</script>

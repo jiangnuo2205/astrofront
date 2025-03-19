@@ -1,0 +1,33 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import AdminLogin from '../../components/AdminLogin.astro';
+---
+
+<MainLayout title="管理员登录">
+  <div class="container">
+    <h1>管理员登录</h1>
+    <AdminLogin />
+  </div>
+</MainLayout>
+
+<style>
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+</style>
+
+<script>
+  // 检查是否已登录，如果已登录则直接跳转到控制面板
+  if (typeof window !== 'undefined') {
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+      window.location.href = '/admin/dashboard';
+    }
+  }
+</script>
