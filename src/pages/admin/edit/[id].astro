@@ -1,17 +1,9 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+import { getCollection } from 'astro:content';
 
-// 定义 getStaticPaths 函数
-export async function getStaticPaths() {
-  // 这里应该返回所有可能的 id 值
-  // 在开发环境中，你可以使用一个占位符让 Astro 接受任何 id
-  return [
-    { params: { id: 'new' } },
-    { params: { id: '1' } },
-    { params: { id: '2' } },
-    // 如果你有更多的 id，可以继续添加
-  ];
-}
 
 
 // 获取路由参数
@@ -19,67 +11,58 @@ const { id } = Astro.params;
 
 // 模拟从数据库获取内容
 // 在实际应用中，这里会从数据库或API获取数据
-const isNew = id === 'new';
+
+let isNew = true;
 let newsItem = {
   id: "",
+  date:new Date().toISOString().split('T')[0],
+  summary:"",
   title: "",
   slug: "",
   content: "",
   status: "草稿"
 };
-
-// 如果不是新建，则获取已有数据
-if (!isNew) {
-  const newsDatabase = {
-    "1": {
-      id: "1",
-      title: "网站正式上线",
-      slug: "website-launch",
-      content: `<p>我们很高兴地宣布，信息发布系统今天正式上线！</p>
+// 如果不是新建内容，加载现有内容
+if (id && id !== 'new') {
+  isNew = false;
+  try {
+    const filePath = path.join(process.cwd(), 'src/content/news', `${id}.md`);
+    
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
       
-<p>经过团队的不懈努力，我们打造了这个功能强大、使用便捷的信息发布平台。无论是公司公告、新闻动态还是重要通知，都可以通过这个系统快速发布和管理。</p>
-
-<p>系统具有以下特点：</p>
-<ul>
-  <li>简洁直观的用户界面</li>
-  <li>响应式设计，支持多设备访问</li>
-  <li>基于Git的版本控制</li>
-  <li>通过Vercel实现自动部署</li>
-  <li>安全可靠的管理员权限控制</li>
-</ul>
-
-<p>我们会持续完善系统功能，欢迎提供宝贵意见！</p>`,
-      status: "已发布"
-    },
-    "2": {
-      id: "2",
-      title: "系统功能介绍",
-      slug: "system-features",
-      content: `<p>本系统采用最新的技术栈，提供高效、便捷的信息发布服务。</p>
-
-<p>主要功能包括：</p>
-<ul>
-  <li>新闻发布与管理</li>
-  <li>内容分类与标签</li>
-  <li>搜索与筛选</li>
-  <li>版本历史与回滚</li>
-  <li>自动构建与部署</li>
-</ul>
-
-<p>技术栈：</p>
-<ul>
-  <li>Astro框架：提供出色的性能和开发体验</li>
-  <li>GitHub：代码托管与版本控制</li>
-  <li>Vercel：自动构建与部署</li>
-</ul>
-
-<p>未来我们将继续增强系统功能，敬请期待！</p>`,
-      status: "已发布"
+      // 解析frontmatter
+      const frontmatterMatch = fileContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+      
+      if (frontmatterMatch) {
+        const frontmatter = frontmatterMatch[1];
+        content = frontmatterMatch[2].trim();
+        
+        // 提取标题
+        const titleMatch = frontmatter.match(/title:\s*"([^"]*)"/);
+        if (titleMatch) title = titleMatch[1];
+        
+        // 提取日期
+        const dateMatch = frontmatter.match(/date:\s*(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch) date = dateMatch[1];
+        
+        // 提取摘要
+        const summaryMatch = frontmatter.match(/summary:\s*"([^"]*)"/);
+        if (summaryMatch) summary = summaryMatch[1];
+      }
     }
-  };
-  
-  newsItem = newsDatabase[id] || newsItem;
+  } catch (error) {
+    console.error('加载内容时出错:', error);
+  }
 }
+
+// 获取下一个可用的ID
+const newsEntries = await getCollection('news');
+const nextId = (newsEntries.length + 1).toString();
+
+
+
+
 
 const pageTitle = isNew ? "创建新内容" : "编辑内容";
 ---
@@ -99,6 +82,11 @@ const pageTitle = isNew ? "创建新内容" : "编辑内容";
       <small>用于URL的唯一标识，例如: my-news-title</small>
     </div>
     
+      <div class="form-group">
+      <label for="summary">简介</label>
+      <input type="text" id="summary" name="summary" value={newsItem.summary} required>
+    </div>
+
     <div class="form-group">
       <label for="content">内容</label>
       <textarea id="content" name="content" rows="15" required>{newsItem.content}</textarea>
@@ -296,6 +284,7 @@ const pageTitle = isNew ? "创建新内容" : "编辑内容";
     const formData = {
       id: document.getElementById('newsId').value,
       title: document.getElementById('title').value,
+      summary: document.getElementById('summary').value,
       slug: document.getElementById('slug').value,
       content: document.getElementById('content').value,
       status: document.getElementById('status').value
@@ -308,8 +297,8 @@ const pageTitle = isNew ? "创建新内容" : "编辑内容";
     // 构造 Markdown 内容
     const markdownContent = `---
 title: "${formData.title}"
+summary: "${formData.summary}"
 date: ${today}
-summary: ""
 ---
 ${formData.content}`;
 
