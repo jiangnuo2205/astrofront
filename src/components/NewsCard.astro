@@ -1,0 +1,83 @@
+---
+// src/components/NewsCard.astro
+export interface Props {
+  title: string;
+  slug: string;
+  date: string;
+  summary: string;
+}
+
+const { title, slug, date, summary } = Astro.props;
+
+// 格式化日期显示
+const formattedDate = new Date(date).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+---
+
+<div class="news-card">
+  <h3 class="news-title">
+    <a href={`/news/${slug}`}>{title}</a>
+  </h3>
+  <div class="news-meta">
+    <time datetime={date}>{formattedDate}</time>
+  </div>
+  <p class="news-summary">{summary}</p>
+  <div class="news-link">
+    <a href={`/news/${slug}`}>阅读更多 &rarr;</a>
+  </div>
+</div>
+
+<style>
+  .news-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .news-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .news-title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+  }
+
+  .news-title a {
+    color: #333;
+    text-decoration: none;
+  }
+
+  .news-title a:hover {
+    color: #0066cc;
+  }
+
+  .news-meta {
+    color: #666;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .news-summary {
+    color: #444;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .news-link a {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .news-link a:hover {
+    text-decoration: underline;
+  }
+</style>

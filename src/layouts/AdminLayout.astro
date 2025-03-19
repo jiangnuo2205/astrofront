@@ -1,0 +1,39 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>管理后台 - {title}</title>
+  </head>
+  <body>
+    <div class="admin-container">
+      <aside class="sidebar">
+        <h2>管理菜单</h2>
+        <nav>
+          <ul>
+            <li><a href="/admin/dashboard">控制面板</a></li>
+            <li><a href="/admin/edit/new">创建新闻</a></li>
+            <li><a href="/news">查看前台</a></li>
+            <li><a href="/admin/logout">退出登录</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <main class="admin-content">
+        <h1>{title}</h1>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>

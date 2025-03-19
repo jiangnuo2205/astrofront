@@ -1,0 +1,17 @@
+# src/cms/config.yml
+backend:
+  name: github
+  repo: astrofront/wrsa-repo # 你的仓库
+  branch: main
+
+media_folder: "public/uploads"
+
+collections:
+  - name: "news" # 新闻内容
+    label: "新闻"
+    folder: "src/content/news"
+    create: true
+    fields:
+      - {label: "标题", name: "title", widget: "string"}
+      - {label: "日期", name: "date", widget: "datetime"}
+      - {label: "正文", name: "body", widget: "markdown"}

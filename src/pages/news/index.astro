@@ -1,0 +1,143 @@
+---
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+
+// 获取所有新闻并按日期排序（最新的在前）
+const allNews = await getCollection('news');
+const sortedNews = allNews.sort((a, b) => 
+  new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+
+// 格式化日期的辅助函数
+function formatDate(date) {
+  if (typeof date === 'string') {
+    date = new Date(date);
+  }
+  
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+---
+
+<MainLayout title="新闻列表 - 欢迎使用厦门Fox澳式橄榄球队信息发布系统">
+  <div class="container news-container">
+    <h1 class="page-title">新闻列表</h1>
+    
+    <div class="news-list">
+      {sortedNews.length > 0 ? (
+        sortedNews.map(news => (
+          <article class="news-item">
+            <h2 class="news-title">
+              <a href={`/news/${news.slug}`}>{news.data.title}</a>
+            </h2>
+            <div class="news-meta">
+              <time datetime={news.data.date.toString()}>
+                {formatDate(news.data.date)}
+              </time>
+              {news.data.author && (
+                <span class="author">作者: {news.data.author}</span>
+              )}
+            </div>
+            {news.data.summary && (
+              <p class="news-summary">{news.data.summary}</p>
+            )}
+            <div class="news-link">
+              <a href={`/news/${news.slug}`} class="read-more">
+                阅读全文 &rarr;
+              </a>
+            </div>
+          </article>
+        ))
+      ) : (
+        <div class="empty-state">
+          <p>暂无新闻发布。</p>
+        </div>
+      )}
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .news-container {
+    padding: 2rem 0;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eaeaea;
+  }
+
+  .news-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .news-item {
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .news-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .news-title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.5rem;
+  }
+
+  .news-title a {
+    color: #333;
+    text-decoration: none;
+  }
+
+  .news-title a:hover {
+    color: #0066cc;
+  }
+
+  .news-meta {
+    display: flex;
+    gap: 1rem;
+    color: #666;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .news-summary {
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .read-more {
+    display: inline-block;
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .read-more:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+  }
+</style>

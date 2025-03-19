@@ -1,11 +1,166 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import MainLayout from '../layouts/MainLayout.astro';
+import NewsCard from '../components/NewsCard.astro';
+import { getCollection } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// 从内容集合中获取最新新闻
+const allNews = await getCollection('news');
+const latestNews = allNews
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, 3); // 只获取最新的3篇
 ---
+<style is:global>
+  :root {
+    --fox-orange: #ff6b1a;
+    --fox-dark: #d14a00;
+    --fox-light: #ffd4b8;
+  }
+</style>
 
-<Layout>
-	<Welcome />
-</Layout>
+<style>
+  .hero {
+    background: linear-gradient(135deg, var(--fox-orange), var(--fox-dark));
+    color: white;
+    padding: 6rem 1rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/rugby-pattern.png');
+    opacity: 0.1;
+    z-index: 0;
+  }
+
+  .hero .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .hero p {
+    font-size: 1.4rem;
+    color: var(--fox-light);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .latest-news {
+    padding: 3rem 0;
+  }
+
+  .latest-news h2 {
+    color: var(--fox-orange);
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .latest-news h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: var(--fox-orange);
+    margin: 1rem auto;
+    border-radius: 2px;
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .hero h1 {
+      font-size: 2.5rem;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+    }
+  }
+</style>
+
+<MainLayout title="厦门Fox澳式橄榄球队信息发布系统 - 首页">
+  <section class="hero">
+    <div class="container">
+      <h1>欢迎使用厦门Fox澳式橄榄球队信息发布系统</h1>
+      <p>热情、火热的澳式橄榄球</p>
+    </div>
+  </section>
+
+  <section class="latest-news">
+    <div class="container">
+      <h2>最新发布</h2>
+      <div class="news-grid">
+        {latestNews.map(news => (
+          <NewsCard 
+            title={news.data.title}
+            slug={news.slug}
+            date={news.data.date.toString()}
+            summary={news.data.summary || ''}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+</MainLayout>
+
+<style>
+  /* 你的样式保持不变 */
+</style>
+
+<style>
+  .hero {
+    background-color: #f5f5f5;
+    padding: 4rem 1rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero p {
+    font-size: 1.2rem;
+    color: #666;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .latest-news h2 {
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+</style>

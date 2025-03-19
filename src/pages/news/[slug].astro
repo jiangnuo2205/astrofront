@@ -1,0 +1,83 @@
+---
+// src/pages/news/[slug].astro
+import MainLayout from '../../layouts/MainLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const newsEntries = await getCollection('news');
+  
+  return newsEntries.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+
+// 格式化日期
+const formattedDate = new Date(entry.data.date).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric'
+});
+---
+
+<MainLayout title={`${entry.data.title} - 欢迎使用厦门Fox澳式橄榄球队信息发布系统`}>
+  <div class="container news-detail">
+    <article>
+      <header>
+        <h1>{entry.data.title}</h1>
+        <div class="meta">
+          <time datetime={entry.data.date.toISOString()}>{formattedDate}</time>
+        </div>
+      </header>
+      
+      <div class="content">
+        <Content />
+      </div>
+    </article>
+    
+    <div class="back-link">
+      <a href="/">&larr; 返回首页</a>
+    </div>
+  </div>
+</MainLayout>
+
+<style>
+  .news-detail {
+    padding: 2rem 0;
+  }
+  
+  article header {
+    margin-bottom: 2rem;
+  }
+  
+  article h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .meta {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+  }
+  
+  .back-link {
+    margin-top: 3rem;
+  }
+  
+  .back-link a {
+    color: #0066cc;
+    text-decoration: none;
+  }
+  
+  .back-link a:hover {
+    text-decoration: underline;
+  }
+</style>
