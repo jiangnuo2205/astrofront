@@ -3,24 +3,27 @@
 import MainLayout from '../../layouts/MainLayout.astro';
 import { getCollection } from 'astro:content';
 
-export async function getStaticPaths() {
-  const newsEntries = await getCollection('news');
-  
-  return newsEntries.map(entry => ({
-    params: { slug: entry.slug },
-    props: { entry },
-  }));
+// 获取请求参数
+const { slug } = Astro.params;
+// 动态获取条目
+const allEntries = await getCollection('news');
+const entry = allEntries.find(e => e.slug === slug);
+// 如果找不到条目
+if (!entry) {
+  return Astro.redirect('/404');
 }
 
-const { entry } = Astro.props;
+// 渲染内容
 const { Content } = await entry.render();
-
 // 格式化日期
 const formattedDate = new Date(entry.data.date).toLocaleDateString('zh-CN', {
   year: 'numeric',
   month: 'long',
   day: 'numeric'
 });
+
+
+
 ---
 
 <MainLayout title={`${entry.data.title} - 欢迎使用厦门Fox澳式橄榄球队信息发布系统`}>

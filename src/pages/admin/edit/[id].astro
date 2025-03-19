@@ -290,7 +290,7 @@ const pageTitle = isNew ? "创建新内容" : "编辑内容";
   // 表单提交
   const editForm = document.getElementById('editForm');
   
-  editForm?.addEventListener('submit', function(e) {
+  editForm?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = {
@@ -300,13 +300,62 @@ const pageTitle = isNew ? "创建新内容" : "编辑内容";
       content: document.getElementById('content').value,
       status: document.getElementById('status').value
     };
+
+     try {
+    // 创建今天的日期，格式为 YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
     
-    // 在实际应用中，这里会发送请求到服务器保存内容
-    // 这里只是模拟保存成功
-    console.log('保存内容:', formData);
-    alert('内容已保存');
+    // 构造 Markdown 内容
+    const markdownContent = `---
+title: "${formData.title}"
+date: ${today}
+summary: ""
+---
+${formData.content}`;
+
+    // 创建文件名
+    const fileName = `${formData.title.replace(/\s+/g, '-').toLowerCase()}.md`;
     
-    // 重定向到控制面板
-    window.location.href = '/admin/dashboard';
+    // 准备要发送的数据
+    const postData = {
+      fileName: fileName,
+      content: markdownContent
+    };
+    
+    console.log('发送数据:', postData);
+    
+    // 发送请求到服务器端点保存文件
+    const response = await fetch('/api/save-markdown', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(postData)
+    });
+    
+    console.log('响应状态:', response.status);
+    
+    // 检查是否为JSON响应
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('响应不是JSON格式:', await response.text());
+      alert('服务器响应格式错误');
+      return;
+    }
+    
+    const result = await response.json();
+    console.log('响应结果:', result);
+    
+    if (result.success) {
+      alert('内容已保存');
+      // 重定向到控制面板
+      window.location.href = '/admin/dashboard';
+    } else {
+      alert('保存失败: ' + (result.error || '未知错误'));
+    }
+  } catch (error) {
+    console.error('保存内容时出错:', error);
+    alert('保存失败: ' + error.message);
+  }
   });
 </script>
